@@ -19,6 +19,7 @@ class ListGemsCommand(sublime_plugin.WindowCommand):
     """
 
     def run(self):
+        self.app_path_mac = None
         self.get_gem_list()
         if self.gems != None:
           self.show_gem_list()
@@ -97,14 +98,47 @@ class ListGemsCommand(sublime_plugin.WindowCommand):
                 if filename:
                     return os.path.dirname(filename)
 
+
     def open_folder_in_new_window(self, folder, file):
+        if sublime.version() >= '3000':
+            self.open_folder_in_new_window_ST3(folder, file)
+        else:
+            self.open_folder_in_new_window_ST2(folder, file)
+
+    def open_folder_in_new_window_ST3(self, folder, file):
         sublime.run_command("new_window")
         sublime.active_window().set_project_data({"folders": [{"path": folder}]})
-        sublime.active_window().open_file(file)
 
+    def open_folder_in_new_window_ST2(self, folder, file):
+        return subprocess.Popen([self.get_sublime_path(), '-n', folder])
 
-
-
-
-
-
+    def get_sublime_path(self):
+        if sublime.platform() == 'osx':
+            if not self.app_path_mac:
+                # taken from https://github.com/freewizard/SublimeGotoFolder/blob/master/GotoFolder.py:
+                from ctypes import cdll, byref, Structure, c_int, c_char_p, c_void_p
+                from ctypes.util import find_library
+                Foundation = cdll.LoadLibrary(find_library('Foundation'))
+                CFBundleGetMainBundle = Foundation.CFBundleGetMainBundle
+                CFBundleGetMainBundle.restype = c_void_p
+                bundle = CFBundleGetMainBundle()
+                CFBundleCopyBundleURL = Foundation.CFBundleCopyBundleURL
+                CFBundleCopyBundleURL.argtypes = [c_void_p]
+                CFBundleCopyBundleURL.restype = c_void_p
+                url = CFBundleCopyBundleURL(bundle)
+                CFURLCopyFileSystemPath = Foundation.CFURLCopyFileSystemPath
+                CFURLCopyFileSystemPath.argtypes = [c_void_p, c_int]
+                CFURLCopyFileSystemPath.restype = c_void_p
+                path = CFURLCopyFileSystemPath(url, c_int(0))
+                CFStringGetCStringPtr = Foundation.CFStringGetCStringPtr
+                CFStringGetCStringPtr.argtypes = [c_void_p, c_int]
+                CFStringGetCStringPtr.restype = c_char_p
+                self.app_path_mac = CFStringGetCStringPtr(path, 0)
+                CFRelease = Foundation.CFRelease
+                CFRelease.argtypes = [c_void_p]
+                CFRelease(path)
+                CFRelease(url)
+            return self.app_path_mac.decode() + '/Contents/SharedSupport/bin/subl'
+        if sublime.platform() == 'linux':
+            return open('/proc/self/cmdline').read().split(chr(0))[0]
+        return sys.executable
