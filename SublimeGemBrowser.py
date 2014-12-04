@@ -107,14 +107,15 @@ class ListGemsCommand(sublime_plugin.WindowCommand):
         return subprocess.Popen(args)
 
     def gemfile_folder(self):
-        root = self.window.folders()[0]
-        matches = []
-        for root, dirnames, filenames in os.walk(root):
-            for filename in fnmatch.filter(filenames, 'Gemfile'):
-                matches.append(os.path.join(root, filename))
-                break
-        if matches == []: return None
-        return os.path.dirname(matches[0])
+        folders = self.window.folders()
+        if len(folders) > 0:
+            return folders[0]
+        else:
+            view = self.window.active_view()
+            if view:
+                filename = view.file_name()
+                if filename:
+                    return os.path.dirname(filename)
 
 
 
