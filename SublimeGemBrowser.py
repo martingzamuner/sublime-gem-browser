@@ -67,7 +67,7 @@ class ListGemsCommand(sublime_plugin.WindowCommand):
             else:
                 ruby_executable = 'ruby'
         pipe = subprocess.Popen([ruby_executable, ruby_file],
-            cwd=self.gemfile_folder(),
+            cwd=self.gemfile_folder() + '/rankia/',
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
             )
