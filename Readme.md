@@ -41,6 +41,9 @@ Type "gem browser" and enter. All done!
   rm -rf sublime-gem-browser
 ```
 
+### Fix for Ruby path issues on Mac OS X
+
+Gem Browser makes an effort to find the proper Ruby executable on your computer. However, if you still get errors such as 'could not find gem ... in any of the sources' or just Ruby not being found, you should install the [Fix Mac Path](https://github.com/int3h/SublimeFixMacPath) plugin, which makes the $PATH from your shell available in Sublime Text. (This will also fix all kinds of build tools dependent on custom $PATH.)
 
 ## Known issues / limitations
 * Experimental support for Sublime Text 3 (Only in OS X with RVM)
